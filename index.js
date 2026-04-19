@@ -20,7 +20,7 @@ bot.on("message", async (msg) => {
 
   try {
     const command = new InvokeModelCommand({
-      modelId: "anthropic.claude-3-haiku-20240307",
+      modelId: "anthropic.claude-3-5-haiku-20241022",
       contentType: "application/json",
       accept: "application/json",
       body: JSON.stringify({
