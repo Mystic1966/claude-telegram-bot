@@ -4,7 +4,7 @@ import {
   InvokeModelCommand
 } from "@aws-sdk/client-bedrock-runtime";
 
-// Create bot (polling)
+// Telegram bot
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, {
   polling: {
     interval: 300,
@@ -12,7 +12,7 @@ const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, {
   }
 });
 
-// AWS client
+// AWS Bedrock client
 const client = new BedrockRuntimeClient({
   region: process.env.AWS_REGION
 });
@@ -26,8 +26,8 @@ bot.on("message", async (msg) => {
 
   try {
     const command = new InvokeModelCommand({
-      // ✅ SAFE MODEL (works in most accounts)
-     modelId: "anthropic.claude-haiku-4-5-20251001-v1:0",
+      // ✅ YOUR EXACT MODEL
+      modelId: "anthropic.claude-haiku-4-5-20251001-v1:0",
 
       contentType: "application/json",
       accept: "application/json",
@@ -55,18 +55,19 @@ bot.on("message", async (msg) => {
       new TextDecoder().decode(response.body)
     );
 
-    const reply = data?.content?.[0]?.text || "No response";
+    const reply =
+      data?.content?.[0]?.text || "No response from Claude";
 
     bot.sendMessage(chatId, reply);
 
   } catch (err) {
-    console.error("ERROR:", err);
+    console.error("FULL ERROR:", JSON.stringify(err, null, 2));
 
-    bot.sendMessage(chatId, "⚠️ Error talking to Claude");
+    bot.sendMessage(chatId, "⚠️ Claude error — check logs");
   }
 });
 
-// Prevent crash
+// Prevent crashes
 process.on("uncaughtException", (err) => {
   console.error("UNCAUGHT:", err);
 });
