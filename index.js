@@ -4,14 +4,20 @@ import {
   InvokeModelCommand
 } from "@aws-sdk/client-bedrock-runtime";
 
-// ENV VARIABLES
-const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
+// Create bot (polling)
+const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, {
+  polling: {
+    interval: 300,
+    autoStart: true
+  }
+});
 
+// AWS client
 const client = new BedrockRuntimeClient({
   region: process.env.AWS_REGION
 });
 
-// MESSAGE HANDLER
+// Message handler
 bot.on("message", async (msg) => {
   if (!msg.text) return;
 
@@ -20,9 +26,12 @@ bot.on("message", async (msg) => {
 
   try {
     const command = new InvokeModelCommand({
-      modelId: "anthropic.claude-3-5-haiku-20241022",
+      // ✅ SAFE MODEL (works in most accounts)
+      modelId: "anthropic.claude-3-haiku-20240307",
+
       contentType: "application/json",
       accept: "application/json",
+
       body: JSON.stringify({
         anthropic_version: "bedrock-2023-05-31",
         max_tokens: 300,
@@ -42,16 +51,26 @@ bot.on("message", async (msg) => {
 
     const response = await client.send(command);
 
-    const responseBody = JSON.parse(
+    const data = JSON.parse(
       new TextDecoder().decode(response.body)
     );
 
-    const reply = responseBody.content[0].text;
+    const reply = data?.content?.[0]?.text || "No response";
 
     bot.sendMessage(chatId, reply);
 
-  } catch (error) {
-    console.error("ERROR:", error);
-    bot.sendMessage(chatId, "Error talking to Claude");
+  } catch (err) {
+    console.error("ERROR:", err);
+
+    bot.sendMessage(chatId, "⚠️ Error talking to Claude");
   }
+});
+
+// Prevent crash
+process.on("uncaughtException", (err) => {
+  console.error("UNCAUGHT:", err);
+});
+
+process.on("unhandledRejection", (err) => {
+  console.error("REJECTION:", err);
 });
