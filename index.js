@@ -27,7 +27,7 @@ bot.on("message", async (msg) => {
   try {
     const command = new InvokeModelCommand({
       // ✅ YOUR EXACT MODEL
-      modelId: "anthropic.claude-haiku-4-5-20251001-v1:0",
+      modelId: "anthropic.claude-3-haiku-20240307",
 
       contentType: "application/json",
       accept: "application/json",
